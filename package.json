@@ -1,0 +1,41 @@
+{
+  "name": "dsh-anthropic-oauth",
+  "version": "0.1.0",
+  "description": "Bridge Claude Code OAuth (Pro/Max/Team) into DSH — reuses ~/.claude/.credentials.json, auto-refreshes, syncs ANTHROPIC_OAUTH_TOKEN without hardcoding",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": {
+      "default": "./lib/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "files": [
+    "lib/index.js",
+    "cordis.patch.yml"
+  ],
+  "keywords": [
+    "deepseek-harness",
+    "dsh",
+    "plugin",
+    "anthropic",
+    "claude",
+    "oauth",
+    "oidc",
+    "pkce"
+  ],
+  "license": "MIT",
+  "author": "TrueNix",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/TrueNix/dsh-anthropic-oauth.git"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

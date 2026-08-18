@@ -1,0 +1,4 @@
+# dsh-anthropic-oauth bundle patch: headless (no client half)
+- insert:
+    - id: anthropic-oauth-bridge
+      name: dsh-anthropic-oauth
