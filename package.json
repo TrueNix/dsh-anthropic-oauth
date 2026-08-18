@@ -1,22 +1,32 @@
 {
   "name": "dsh-anthropic-oauth",
-  "version": "0.2.0",
-  "description": "Bridge Claude Code OAuth (Pro/Max/Team) into DSH — reuses ~/.claude/.credentials.json, auto-refreshes, syncs ANTHROPIC_OAUTH_TOKEN, and pulls the model catalog live from /v1/models without hardcoding",
+  "version": "0.3.0",
+  "description": "Bridge Claude Code OAuth (Pro/Max/Team) into DSH — reuses ~/.claude/.credentials.json, auto-refreshes, syncs ANTHROPIC_OAUTH_TOKEN, pulls the model catalog live from /v1/models, and shows a live subscription quota panel (5h/7d usage + reset) — without hardcoding",
   "type": "module",
   "main": "lib/index.js",
   "exports": {
     ".": {
       "default": "./lib/index.js"
     },
+    "./client": {
+      "default": "./lib/client.js"
+    },
     "./package.json": "./package.json"
   },
   "dsh": {
     "bundle": {
       "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-slots"
+      ]
     }
   },
   "files": [
     "lib/index.js",
+    "lib/client.js",
     "cordis.patch.yml"
   ],
   "keywords": [

@@ -9,8 +9,27 @@ Bridge your existing **Claude Code OAuth** session (Pro / Max / Team) into **Dee
 - **Pulls the model catalog live** from `GET /v1/models` (id, display name, context window, max output, thinking/effort capabilities) — no hardcoded model list; new Claude releases appear automatically
 - Sends the **current Claude Code request identity** (up-to-date OAuth beta set + `claude-cli` impersonation headers) with **no real user identifier** — `cch` is a zeroed placeholder
 - Billed to your **subscription**, not a console API key (`Bearer` + `oauth-2025-04-20`)
+- **Live quota panel**: shows your subscription's **5-hour and 7-day usage** with a reset countdown, read from the `anthropic-ratelimit-unified-*` headers on a cheap `max_tokens:1` probe (these headers ride only on `/v1/messages`, never `/v1/models`)
 
 This does **not** embed or persist your tokens beyond the two standard DSH/Claude files.
+
+## Quota display
+
+In the DSH web UI, the plugin's client half docks a themed **quota panel** in the composer's ambient readout slot (`conversation.composer.dock`) — non-invasive (touches no shell chrome) and theme-aware (uses `--dsw-*` tokens, so it adapts to light/dark):
+
+- **5h / 7d bars** with per-window utilization (green → amber ≥70% → red ≥90%)
+- **live reset countdown** to the representative (usually 5-hour) window
+- **Check quota** button forcing a fresh probe (otherwise auto-refreshes every 60s)
+- **model-aware**: the panel only appears while the session's active model routes through the Anthropic provider. Switch to a non-Anthropic model (Qwen, DeepSeek, GLM, …) and it hides itself; switch back and it returns — read live from the shared model-selection directory, so it reacts immediately. If the model-selection service is unavailable, the gate is skipped (panel shown) rather than hidden forever.
+
+The client half is authored directly in the DSH client-bundle format (`window.__ModuleLoader__.load`) and served verbatim — **no bundler or build step**. It reads two JSON endpoints the host half serves:
+
+| Endpoint | Purpose |
+| --- | --- |
+| `GET /api/anthropic-oauth/status` | Bridge state + last `rateLimit` snapshot (folded into `lastAuthState`) |
+| `GET /api/anthropic-oauth/quota` | Live quota (60s TTL); `?force=1` or `POST` bypasses the cache |
+
+The quota probe spends a negligible amount (Haiku, 1 output token) and is throttled to 60s + manual refresh.
 
 ## Install
 
