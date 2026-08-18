@@ -75,10 +75,9 @@ dsh plugin --profile headless add github:TrueNix/dsh-anthropic-oauth
 
 The model catalog is refreshed from `GET /v1/models` (≤6h TTL, or on demand via
 `POST /api/anthropic-oauth/sync`); if discovery fails the provider keeps a minimal
-Sonnet-4.5 seed so it still resolves offline.
-
-Verified live: 12 models pulled (Opus 5 / Sonnet 5 / Opus 4.8 … Haiku 4.5) with
-correct 1M/200K context windows and per-model effort levels straight from the API.
+Sonnet-4.5 seed so it still resolves offline. Quota is probed from
+`POST /v1/messages` (`max_tokens:1`, Haiku — fractions of a cent, 60s TTL)
+and exposed at `/api/anthropic-oauth/quota`.
 
 ## Set as default model
 
@@ -94,17 +93,23 @@ Or pick per-session in **Settings → Models** after a reload.
 ## Logs & manual sync
 
 ```sh
-journalctl --user -u dsh-anthropic-oauth-bridge -f  # legacy external bridge (pre-plugin)
-# plugin logs:
-# DSH console: [anthropic-oauth] ...
-node ~/Workspace/sync-claude-oauth.mjs   # manual one-shot (legacy)
+# DSH console (bridge + quota probe):
+# [anthropic-oauth] pulled N models from /v1/models
+# [anthropic-oauth] refreshed, new expiry …
+
+# Force-refresh the model catalog (also syncs quota):
+curl -X POST http://127.0.0.1:3080/api/anthropic-oauth/sync
+
+# Live quota (60s TTL; ?force=1 bypasses cache):
+curl http://127.0.0.1:3080/api/anthropic-oauth/quota
+curl "http://127.0.0.1:3080/api/anthropic-oauth/quota?force=1"
 ```
 
 ## Troubleshooting
 
-- `MISSING_CREDENTIAL llm-pi-ai: no credential for provider route "anthropic"` — bridge hasn't synced yet; run `node ~/Workspace/sync-claude-oauth.mjs` or re-login with `claude`.
-- `state mismatch` during manual paste — you pasted a `code` from a different PKCE verifier.
+- `MISSING_CREDENTIAL llm-pi-ai: no credential for provider route "anthropic"` — bridge hasn't synced yet; re-login with `claude login`.
 - 401 from Anthropic — token expired and refresh failed; `claude login` again.
+- Quota `ok:false` with a refresh error — subscription may have changed; re-login, then check `/api/anthropic-oauth/quota?force=1`.
 
 ## Security
 
