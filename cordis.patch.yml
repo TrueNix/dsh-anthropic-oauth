@@ -1,4 +1,10 @@
-# dsh-anthropic-oauth bundle patch: headless (no client half)
+# dsh-anthropic-oauth bundle patch.
+#
+# Inserts the host bridge row. The web client half (the composer-dock quota
+# panel) is discovered separately by the client-modules registry from the
+# `dsh.client` + `exports["./client"]` fields in package.json — it activates
+# whenever this package is loaded into the web profile, so no extra row is
+# needed here.
 - insert:
     - id: anthropic-oauth-bridge
       name: dsh-anthropic-oauth
