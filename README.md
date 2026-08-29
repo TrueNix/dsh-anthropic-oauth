@@ -2,8 +2,11 @@
 
 Bridge your existing **Claude Code OAuth** session (Pro / Max / Team) into **DeepSeek Harness (DSH)** — with zero hardcoding.
 
-- Reads `~/.claude/.credentials.json` `claudeAiOauth` live (same file Claude Code writes)
-- Auto-refreshes `accessToken` via `https://platform.claude.com/v1/oauth/token` when <5 min remains
+- Reads your Claude Code OAuth grant from one of three sources, in order:
+  1. **macOS Keychain** generic-password item `Claude Code-credentials` (where Claude Code 2.1.x stores live tokens)
+  2. **`~/.claude/.credentials.json`** `claudeAiOauth` block (the file form some Claude Code versions still write)
+  3. **`$CLAUDE_CODE_OAUTH_TOKEN`** environment variable (CI / non-darwin)
+- Auto-refreshes `accessToken` via `https://platform.claude.com/v1/oauth/token` when <5 min remains, and mirrors the refreshed grant back to **every source** the reader found so Claude Code's own daemon stays in sync
 - Syncs `ANTHROPIC_OAUTH_TOKEN` (+ `CLAUDE_CODE_OAUTH_TOKEN` alias) into `~/.dsh/.credentials.yaml` — the credential seam `dsh-llm-pi-ai` already resolves
 - Ensures `llm-pi-ai.providers.anthropic` (`api: anthropic-messages`) exists in `~/.dsh/settings.yaml`
 - **Pulls the model catalog live** from `GET /v1/models` (id, display name, context window, max output, thinking/effort capabilities) — no hardcoded model list; new Claude releases appear automatically
@@ -11,7 +14,7 @@ Bridge your existing **Claude Code OAuth** session (Pro / Max / Team) into **Dee
 - Billed to your **subscription**, not a console API key (`Bearer` + `oauth-2025-04-20`)
 - **Live quota panel**: shows your subscription's **5-hour and 7-day usage** with a reset countdown, read from the `anthropic-ratelimit-unified-*` headers on a cheap `max_tokens:1` probe (these headers ride only on `/v1/messages`, never `/v1/models`)
 
-This does **not** embed or persist your tokens beyond the two standard DSH/Claude files.
+This does **not** embed or persist your tokens beyond the two standard DSH/Claude files (and the macOS Keychain item that Claude Code's own daemon already maintains).
 
 ## Quota display
 
@@ -44,8 +47,18 @@ dsh plugin --profile headless add github:TrueNix/dsh-anthropic-oauth
 
 ## Prerequisites
 
-- `Claude Code` logged in: `claude login` or `claude setup-token` at least once — `~/.claude/.credentials.json` must contain `claudeAiOauth`
+- `Claude Code` logged in: `claude login` or `claude setup-token` at least once — the bridge then picks up the OAuth grant from wherever Claude Code stored it (Keychain on macOS 2.1.x, the credentials file on older builds, or `$CLAUDE_CODE_OAUTH_TOKEN` in CI)
 - DSH `~0.1.0-rc.6`+ (has `dsh-llm-pi-ai`, `credentials`, `settings`, `fs`)
+
+## Credential source resolution
+
+The bridge tries three sources in priority order and uses the first one that returns a usable `claudeAiOauth` block:
+
+1. **macOS Keychain** — `security find-generic-password -s 'Claude Code-credentials' -w`. This is where Claude Code 2.1.x's own daemon writes live tokens; reading it is read-only and never prompts (the `security` tool only prompts when adding or modifying, which this bridge does only on a refresh and only when an existing Keychain item is found).
+2. **`~/.claude/.credentials.json`** — the file form some Claude Code versions still write. Read with `fs.readFileSync`; written back as `chmod 0600` JSON when the bridge refreshes.
+3. **`$CLAUDE_CODE_OAUTH_TOKEN`** — for CI / containers where no Keychain item or file exists. Read-only by contract: exporting the variable is the caller's job, and the bridge does not refresh an env-only grant (the caller owns that lifecycle).
+
+A refresh mirrors the new grant back to every source the reader actually saw, so Claude Code's own daemon keeps seeing a fresh token on the next request.
 
 ## How it works
 
@@ -107,14 +120,17 @@ curl "http://127.0.0.1:3080/api/anthropic-oauth/quota?force=1"
 
 ## Troubleshooting
 
-- `MISSING_CREDENTIAL llm-pi-ai: no credential for provider route "anthropic"` — bridge hasn't synced yet; re-login with `claude login`.
+- `MISSING_CREDENTIAL llm-pi-ai: no credential for provider route "anthropic"` — bridge hasn't synced yet. Check `/api/anthropic-oauth/status`: if `ok:false` lists "No Claude Code OAuth credentials found", run `claude login` once and restart the profile.
+- `security: User interaction is not allowed.` from the Keychain — your login keychain is locked. Unlock it (`security unlock-keychain`) or sign in to your Mac again so `security find-generic-password` can read without prompting.
 - 401 from Anthropic — token expired and refresh failed; `claude login` again.
 - Quota `ok:false` with a refresh error — subscription may have changed; re-login, then check `/api/anthropic-oauth/quota?force=1`.
 
 ## Security
 
 - Never commits tokens — `.gitignore` excludes `*.oat*`, `*.credentials.*`.
-- Tokens live only in `0600` files owned by you: `~/.claude/.credentials.json` and `~/.dsh/.credentials.yaml`.
+- Tokens live in the same places Claude Code's own daemon already writes them: the macOS Keychain (`Claude Code-credentials` generic-password item, owned by the user's login keychain) or `~/.claude/.credentials.json` (`0600`); the bridge also writes a copy to `~/.dsh/.credentials.yaml` (`0600`).
+- Token values are never logged, returned to a UI, or serialised into an `Error.message`. The bridge treats the value as opaque, the way the wire library does — only the surrounding metadata (expiry, tier, subscription type) is observable.
+- The macOS Keychain read uses `security find-generic-password` which is read-only and never prompts on its own; the matching write path runs only when the bridge itself is refreshing a grant it previously found in the Keychain.
 - A Feb-2026 Anthropic docs note declares Pro/Max OAuth for official clients only — personal use at your own risk; use a console `ANTHROPIC_API_KEY` for production.
 
 ## License
