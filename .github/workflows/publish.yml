@@ -1,0 +1,39 @@
+name: Publish package
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    if: github.repository == 'TrueNix/dsh-anthropic-oauth'
+    runs-on: ubuntu-latest
+    environment: npm
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          registry-url: "https://registry.npmjs.org"
+          package-manager-cache: false
+
+      - name: Install OIDC-capable npm
+        run: npm install --global npm@11
+
+      - name: Validate release
+        shell: bash
+        run: |
+          test "$GITHUB_REF_NAME" = "v$(node -p "require('./package.json').version")"
+          node --check lib/index.js
+          node --check lib/client.js
+          npm pack --dry-run
+
+      - name: Publish to npm
+        run: npm publish --access public

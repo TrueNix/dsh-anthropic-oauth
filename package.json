@@ -43,7 +43,7 @@
   "author": "TrueNix",
   "repository": {
     "type": "git",
-    "url": "https://github.com/TrueNix/dsh-anthropic-oauth.git"
+    "url": "git+https://github.com/TrueNix/dsh-anthropic-oauth.git"
   },
   "engines": {
     "node": ">=22"
