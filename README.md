@@ -19,7 +19,7 @@ In the DSH web UI, the plugin's client half docks a themed **quota panel** in th
 
 - **5h / 7d bars** with per-window utilization (green → amber ≥70% → red ≥90%)
 - **live reset countdown** to the representative (usually 5-hour) window
-- **Check quota** button forcing a fresh probe (otherwise auto-refreshes every 60s)
+- **Check quota** button forcing a fresh probe (also refreshes after every completed Anthropic turn, with a 60s fallback poll)
 - **model-aware**: the panel only appears while the session's active model routes through the Anthropic provider. Switch to a non-Anthropic model (Qwen, DeepSeek, GLM, …) and it hides itself; switch back and it returns — read live from the shared model-selection directory, so it reacts immediately. If the model-selection service is unavailable, the gate is skipped (panel shown) rather than hidden forever.
 
 The client half is authored directly in the DSH client-bundle format (`window.__ModuleLoader__.load`) and served verbatim — **no bundler or build step**. It reads two JSON endpoints the host half serves:
