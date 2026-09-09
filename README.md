@@ -111,6 +111,23 @@ curl "http://127.0.0.1:3080/api/anthropic-oauth/quota?force=1"
 - 401 from Anthropic — token expired and refresh failed; `claude login` again.
 - Quota `ok:false` with a refresh error — subscription may have changed; re-login, then check `/api/anthropic-oauth/quota?force=1`.
 
+### Refresh and re-login safety
+
+Refreshes are single-flight per plugin and serialized between DSH processes.
+Missing fields and rejected refresh tokens do not trigger an endless HTTP retry
+loop. A still-valid access token remains usable while the status endpoint reports
+that a fresh Claude login is needed. New credentials clear that pause.
+
+The bridge watches the credential directory so atomic replacements from Claude
+login are detected. It honors `CLAUDE_CONFIG_DIR`, validates refresh responses,
+and uses atomic owner-only writes. If the source file changes during an HTTP
+refresh, the newer credentials are kept instead of overwritten. Claude Code does
+not share the plugin lock; avoid logging in during an in-flight refresh when possible.
+
+The bridge never repairs or directly writes DSH's credential YAML. An
+`unknown top-level key` error is a separate malformed-store problem, not an
+OAuth grant error.
+
 ## Security
 
 - Never commits tokens — `.gitignore` excludes `*.oat*`, `*.credentials.*`.

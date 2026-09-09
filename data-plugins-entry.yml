@@ -1,0 +1,16 @@
+# Draft for https://github.com/awesome-dsh-plugin/awesome-dsh-plugin
+# Path in that repo: data/plugins/TrueNix__dsh-anthropic-oauth.yml
+# Submit once this repo is >=1 day old and has >=10 commits (today: 5 commits, born 2026-08-18).
+#
+# To list:
+#   1) git clone https://github.com/awesome-dsh-plugin/awesome-dsh-plugin
+#   2) cp this file -> data/plugins/TrueNix__dsh-anthropic-oauth.yml
+#   3) node scripts/generate-readme.mjs   # refreshes both READMEs
+#   4) git commit -a && open a PR there.
+
+url: https://github.com/TrueNix/dsh-anthropic-oauth
+name: dsh-anthropic-oauth
+category: auth
+description:
+  en: Bridge Claude Code OAuth (Pro/Max/Team) into DSH with a live model catalog and a themed quota panel — non-invasive, model-aware (shows only on Anthropic), and 2FA-friendly.
+  zh: 将 Claude Code 的 OAuth（Pro/Max/Team）接入 DSH，实时拉取模型目录并提供主题化配额面板；非侵入、按当前模型感知显示（仅 Claude）、支持 2FA。

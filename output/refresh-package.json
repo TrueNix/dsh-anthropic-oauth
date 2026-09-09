@@ -1,0 +1,51 @@
+[
+  {
+    "id": "dsh-anthropic-oauth@0.3.1",
+    "name": "dsh-anthropic-oauth",
+    "version": "0.3.1",
+    "size": 15349,
+    "unpackedSize": 45141,
+    "shasum": "9ee42552215a0c94614dbdc63e2cf12a457ab44f",
+    "integrity": "sha512-gugQ9X06uAqJGi2drat9fJLJGWhhec/GzgfKNdwqQ3/XYTXkfhqdVmduSNYyZA0nwlKLVmq2nVqr0LZ2B1USfQ==",
+    "filename": "dsh-anthropic-oauth-0.3.1.tgz",
+    "files": [
+      {
+        "path": "LICENSE",
+        "size": 801,
+        "mode": 420
+      },
+      {
+        "path": "README.md",
+        "size": 7621,
+        "mode": 420
+      },
+      {
+        "path": "cordis.patch.yml",
+        "size": 432,
+        "mode": 420
+      },
+      {
+        "path": "lib/client.js",
+        "size": 10623,
+        "mode": 384
+      },
+      {
+        "path": "lib/credentials.js",
+        "size": 5895,
+        "mode": 420
+      },
+      {
+        "path": "lib/index.js",
+        "size": 18504,
+        "mode": 420
+      },
+      {
+        "path": "package.json",
+        "size": 1265,
+        "mode": 420
+      }
+    ],
+    "entryCount": 7,
+    "bundled": []
+  }
+]

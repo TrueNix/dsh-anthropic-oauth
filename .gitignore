@@ -2,3 +2,5 @@ node_modules/
 *.oat*
 *.credentials.*
 .env
+graphify-out/
+output/*.tgz

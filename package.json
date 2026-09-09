@@ -27,7 +27,8 @@
   "files": [
     "lib/index.js",
     "lib/client.js",
-    "cordis.patch.yml"
+    "cordis.patch.yml",
+    "lib/credentials.js"
   ],
   "keywords": [
     "deepseek-harness",
@@ -47,5 +48,8 @@
   },
   "engines": {
     "node": ">=22"
+  },
+  "dependencies": {
+    "@deepseek-ai/dsh-atomic-write": "0.1.2-rc.1"
   }
 }
